@@ -1,6 +1,6 @@
 resource "azurerm_resource_group" "RG-sdp-tf" {
   name     = "sdp-tf-resource-group"
-  location = "West Europe"
+  location = "North Europe"
 }
 
 resource "azurerm_service_plan" "SP-sdp-tf" {

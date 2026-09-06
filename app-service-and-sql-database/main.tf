@@ -1,6 +1,6 @@
 resource "azurerm_resource_group" "RG-sdp-tf" {
   name     = "sdp-tf-resource-group"
-  location = "North Europe"
+  location = "West US 2"
 }
 
 resource "azurerm_service_plan" "SP-sdp-tf" {
@@ -18,6 +18,7 @@ resource "azurerm_windows_web_app" "AS-sdp-tf" {
   service_plan_id     = azurerm_service_plan.SP-sdp-tf.id
 
   site_config {
+    always_on = false
     application_stack {
       dotnet_version = "v8.0"
     }

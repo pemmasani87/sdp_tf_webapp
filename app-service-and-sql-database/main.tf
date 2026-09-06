@@ -1,28 +1,26 @@
-resource "azurerm_resource_group" "RG-sdp-tf-webapp" {
-  name     = "sdp-tf-webapp-resource-group"
+resource "azurerm_resource_group" "RG-sdp-tf" {
+  name     = "sdp-tf-resource-group"
   location = "West Europe"
 }
 
-resource "azurerm_app_service_plan" "ASP-sdp-tf-webapp" {
-  name                = "sdp-tf-webapp-appserviceplan"
-  location            = azurerm_resource_group.RG-sdp-tf-webapp.location
-  resource_group_name = azurerm_resource_group.RG-sdp-tf-webapp.name
-
-  sku {
-    tier = "Free"
-    size = "F1"
-  }
+resource "azurerm_service_plan" "SP-sdp-tf" {
+  name                = "sdp-tf-appserviceplan"
+  location            = azurerm_resource_group.RG-sdp-tf.location
+  resource_group_name = azurerm_resource_group.RG-sdp-tf.name
+  os_type             = "Windows"
+  sku_name            = "F1"
 }
 
-resource "azurerm_app_service" "AS-sdp-tf-webapp" {
-  name                = "app-service-sdp-tf-webapp"
-  location            = azurerm_resource_group.RG-sdp-tf-webapp.location
-  resource_group_name = azurerm_resource_group.RG-sdp-tf-webapp.name
-  app_service_plan_id = azurerm_app_service_plan.ASP-sdp-tf-webapp.id
+resource "azurerm_windows_web_app" "AS-sdp-tf" {
+  name                = "app-service-sdp-tf"
+  location            = azurerm_resource_group.RG-sdp-tf.location
+  resource_group_name = azurerm_resource_group.RG-sdp-tf.name
+  service_plan_id     = azurerm_service_plan.SP-sdp-tf.id
 
   site_config {
-    dotnet_framework_version = "v8.0"
-    scm_type                 = "LocalGit"
+    application_stack {
+      dotnet_version = "v8.0"
+    }
   }
 
   app_settings = {
@@ -32,24 +30,22 @@ resource "azurerm_app_service" "AS-sdp-tf-webapp" {
   connection_string {
     name  = "Database"
     type  = "SQLServer"
-    value = "Server=tcp:${azurerm_sql_server.sdp-tf-webapp-sqlserver.fully_qualified_domain_name} Database=${azurerm_sql_database.sdp-tf-webapp-sqldatabase.name};User ID=${azurerm_sql_server.sdp-tf-webapp-sqlserver.administrator_login};Password=${azurerm_sql_server.sdp-tf-webapp-sqlserver.administrator_login_password};Trusted_Connection=False;Encrypt=True;"
+    value = "Server=tcp:${azurerm_mssql_server.sdp-tf-sqlserver.fully_qualified_domain_name};Database=${azurerm_mssql_database.sdp-tf-sqldatabase.name};User ID=${azurerm_mssql_server.sdp-tf-sqlserver.administrator_login};Password=${azurerm_mssql_server.sdp-tf-sqlserver.administrator_login_password};Trusted_Connection=False;Encrypt=True;"
   }
 }
 
-resource "azurerm_sql_server" "sdp-tf-webapp-sqlserver" {
-  name                         = "sdp-tf-webapp-sqlserver"
-  resource_group_name          = azurerm_resource_group.RG-sdp-tf-webapp.name
-  location                     = azurerm_resource_group.RG-sdp-tf-webapp.location
+resource "azurerm_mssql_server" "sdp-tf-sqlserver" {
+  name                         = "sdp-tf-sqlserver"
+  resource_group_name          = azurerm_resource_group.RG-sdp-tf.name
+  location                     = azurerm_resource_group.RG-sdp-tf.location
   version                      = "12.0"
-  administrator_login          = "admin"
-  administrator_login_password = "Subbu@2020"
+  administrator_login          = "sqladminuser"
+  administrator_login_password = "P@ssw0rd-Str0ng!"
 }
 
-resource "azurerm_sql_database" "sdp-tf-webapp-sqldatabase" {
-  name                = "sdp-tf-webapp-sqldatabase"
-  resource_group_name = azurerm_resource_group.RG-sdp-tf-webapp.name
-  location            = azurerm_resource_group.RG-sdp-tf-webapp.location
-  server_name         = azurerm_sql_server.sdp-tf-webapp-sqlserver.name
+resource "azurerm_mssql_database" "sdp-tf-sqldatabase" {
+  name      = "sdp-tf-sqldatabase"
+  server_id = azurerm_mssql_server.sdp-tf-sqlserver.id
 
   tags = {
     environment = "production"
